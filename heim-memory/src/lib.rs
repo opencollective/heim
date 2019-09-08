@@ -26,6 +26,9 @@
 mod memory;
 pub mod os;
 mod swap;
+#[cfg(any(feature = "_internal", feature = "fuzzing"))]
+pub mod sys;
+#[cfg(not(any(feature = "_internal", feature = "fuzzing")))]
 mod sys;
 
 pub use self::memory::*;

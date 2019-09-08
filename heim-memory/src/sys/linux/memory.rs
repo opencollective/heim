@@ -26,8 +26,10 @@ impl FromStr for Memory {
         for line in meminfo.lines() {
             // If line does not starts with "Me", "Ac" or other options at all,
             // we do not need that key at all
-            let first_bytes = &line.as_bytes()[..2];
-            match first_bytes {
+            if line.len() < 2 {
+                continue
+            }
+            match &line.as_bytes()[..2] {
                 b"Me" | b"Ac" | b"In" | b"Bu" | b"Ca" | b"Sh" => {},
                 _ => continue,
             };
@@ -72,6 +74,20 @@ impl FromStr for Memory {
     }
 }
 
-pub fn memory() -> impl Future<Output=Result<Memory>> {
-    fs::read_into("/proc/meminfo")
+pub async fn memory() -> Result<Memory> {
+    fs::read_into("/proc/meminfo").await
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::Memory;
+
+    #[test]
+    fn test_fuzzing_data_1() {
+        let input = "\x0a";
+
+        assert!(Memory::from_str(input).is_ok());
+    }
 }

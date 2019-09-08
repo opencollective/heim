@@ -4,11 +4,12 @@ stages:
       dependsOn: []
       displayName: ${{ parameters.displayName }}
       jobs:
-          - template: os-jobs.yml
-            parameters:
-                toolchain: stable
-                name: stable
-                vmImage: ${{ parameters.vmImage }}
+# TODO: Uncomment
+#          - template: os-jobs.yml
+#            parameters:
+#                toolchain: stable
+#                name: stable
+#                vmImage: ${{ parameters.vmImage }}
 
           - template: os-jobs.yml
             parameters:
@@ -16,11 +17,12 @@ stages:
                 name: nightly
                 vmImage: ${{ parameters.vmImage }}
 
-          - template: os-jobs.yml
-            parameters:
-                toolchain: 1.36.0
-                name: min_supported_version
-                vmImage: ${{ parameters.vmImage }}
+# TODO: Uncomment
+#          - template: os-jobs.yml
+#            parameters:
+#                toolchain: 1.36.0
+#                name: min_supported_version
+#                vmImage: ${{ parameters.vmImage }}
 
           - template: os-coverage.yml
             parameters:

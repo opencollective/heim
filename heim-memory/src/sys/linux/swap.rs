@@ -20,9 +20,8 @@ impl FromStr for VmStat {
         let mut stat = VmStat::default();
 
         for line in vmstat.lines() {
-            let first_bytes = &line.as_bytes()[..2];
-            if first_bytes != b"ps" {
-                continue;
+            if !line.as_bytes().starts_with(b"ps") {
+                continue
             }
 
             let mut parts = line.splitn(2, ' ');
@@ -92,8 +91,7 @@ impl Swap {
 
         for line in meminfo.lines() {
             // If line does not starts with "Sw" we do not need that key at all
-            let first_bytes = &line.as_bytes()[..2];
-            if first_bytes != b"Sw" {
+            if !line.as_bytes().starts_with(b"Sw") {
                 continue
             }
 
@@ -130,19 +128,11 @@ impl Swap {
     }
 }
 
-fn vm_stat() -> impl Future<Output=Result<VmStat>> {
-    fs::read_into(PROC_VMSTAT)
-}
+pub async fn swap() -> Result<Swap> {
+    let meminfo = fs::read_to_string(PROC_MEMINFO).map_err(Into::into);
+    let vmstat = fs::read_into(PROC_VMSTAT);
 
-pub fn swap() -> impl Future<Output=Result<Swap>> {
-    let meminfo = fs::read_to_string(PROC_MEMINFO);
-    // TODO: Replace with `try_join`
-    future::join(meminfo, vm_stat())
-        .then(|result| {
-            match result {
-                (Ok(string), Ok(vm_stat)) => future::ready(Swap::parse_str(&string, vm_stat)),
-                (Err(e), _) => future::err(e.into()),
-                (_, Err(e)) => future::err(e),
-            }
-        })
+    let (meminfo_contents, vmstat) = future::try_join(meminfo, vmstat).await?;
+
+    Swap::parse_str(&meminfo_contents, vmstat)
 }

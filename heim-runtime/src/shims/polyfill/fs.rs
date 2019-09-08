@@ -43,11 +43,11 @@ where
     THREAD_POOL.spawn(move || path.as_ref().exists())
 }
 
-pub fn read_to_string<T>(path: T) -> impl Future<Output = io::Result<String>>
+pub async fn read_to_string<T>(path: T) -> io::Result<String>
 where
     T: AsRef<Path> + Send + Unpin + 'static,
 {
-    THREAD_POOL.spawn(move || fs::read_to_string(path))
+    THREAD_POOL.spawn(move || fs::read_to_string(path)).await
 }
 
 pub fn read_lines<T>(path: T) -> impl Stream<Item = io::Result<String>>
@@ -95,15 +95,15 @@ where
         .try_flatten_stream()
 }
 
-pub fn read_into<T, R, E>(path: T) -> impl Future<Output = Result<R, E>>
+pub async fn read_into<T, R, E>(path: T) -> Result<R, E>
 where
     T: AsRef<Path> + Send + Unpin + 'static,
     R: FromStr<Err = E>,
     E: From<io::Error>,
 {
-    read_to_string(path)
-        .map_err(E::from)
-        .and_then(|content| future::ready(R::from_str(&content).map_err(Into::into)))
+    let content = read_to_string(path).await?;
+
+    R::from_str(&content).map_err(Into::into)
 }
 
 pub fn read_lines_into<T, R, E>(path: T) -> impl Stream<Item = Result<R, E>>

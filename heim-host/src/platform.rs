@@ -77,9 +77,9 @@ impl fmt::Debug for Platform {
     }
 }
 
-/// Returns `Future` which resolves into [Platform] struct.
+/// Returns common [Platform] information.
 ///
 /// [Platform]: ./struct.Platform.html
-pub fn platform() -> impl Future<Output = Result<Platform>> {
-    sys::platform().map_ok(Into::into)
+pub async fn platform() -> Result<Platform> {
+    sys::platform().map_ok(Into::into).await
 }

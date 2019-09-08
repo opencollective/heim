@@ -1,28 +1,33 @@
-#![feature(test)]
+#[macro_use]
+extern crate criterion;
 
-extern crate test;
+use criterion::Criterion;
 
 use heim_common::prelude::*;
 use heim_host as host;
 
-#[heim_derive::bench]
-async fn bench_platform() {
-    host::platform().await
+fn bench_host(c: &mut Criterion) {
+    let mut executor = futures_executor::ThreadPool::new().unwrap();
+
+    c.bench_function("boot_time", |b| {
+        b.iter(|| executor.run(host::boot_time()));
+    });
+
+    c.bench_function("uptime", |b| {
+        b.iter(|| executor.run(host::uptime()));
+    });
+
+    c.bench_function("platform", |b| {
+        b.iter(|| executor.run(host::platform()));
+    });
+
+    c.bench_function("users", |b| {
+        b.iter(|| {
+            let stream = host::users().for_each(|_| future::ready(()));
+            executor.run(stream)
+        });
+    });
 }
 
-#[heim_derive::bench]
-async fn bench_uptime() {
-    host::uptime().await
-}
-
-#[heim_derive::bench]
-async fn bench_boot_time() {
-    host::boot_time().await
-}
-
-#[heim_derive::bench]
-async fn bench_users() {
-    let stream = host::users().for_each(|_| future::ready(()));
-
-    stream.await
-}
+criterion_group!(benches, bench_host);
+criterion_main!(benches);

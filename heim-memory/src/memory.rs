@@ -43,7 +43,7 @@ impl fmt::Debug for Memory {
     }
 }
 
-/// Returns future which will resolve into [Memory] struct.
+/// Returns RAM [Memory] information.
 ///
 /// [Memory]: ./struct.Memory.html
 pub async fn memory() -> Result<Memory> {

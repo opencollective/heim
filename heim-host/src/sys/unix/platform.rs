@@ -1,6 +1,7 @@
 use std::mem;
 use std::str::FromStr;
 use std::ffi::CStr;
+use std::borrow::Cow;
 
 use heim_common::prelude::*;
 
@@ -37,27 +38,36 @@ impl Platform {
     }
 }
 
+#[inline]
+fn cstr<'a>(ptr: *const libc::c_char) -> Cow<'a, str> {
+    unsafe {
+        CStr::from_ptr(ptr).to_string_lossy()
+    }
+}
+
 // Based on the https://github.com/uutils/platform-info/blob/master/src/unix.rs
-pub fn platform() -> impl Future<Output = Result<Platform>> {
-    future::lazy(|_| unsafe {
-        let mut uts = mem::MaybeUninit::<libc::utsname>::uninit();
-        let result = libc::uname(uts.as_mut_ptr());
+pub async fn platform() -> Result<Platform> {
+    let mut uts = mem::MaybeUninit::<libc::utsname>::uninit();
+    let result = unsafe {
+        libc::uname(uts.as_mut_ptr())
+    };
 
-        if result != 0 {
-            Err(Error::last_os_error())
-        } else {
-            let uts = uts.assume_init();
-            let raw_arch = CStr::from_ptr(uts.machine.as_ptr()).to_string_lossy();
-            let arch = Arch::from_str(&raw_arch).unwrap_or(Arch::Unknown);
+    if result != 0 {
+        Err(Error::last_os_error())
+    } else {
+        let uts = unsafe {
+            uts.assume_init()
+        };
+        let raw_arch = cstr(uts.machine.as_ptr());
+        let arch = Arch::from_str(&raw_arch).unwrap_or(Arch::Unknown);
 
-            Ok(Platform {
-                system: CStr::from_ptr(uts.sysname.as_ptr()).to_string_lossy().into_owned(),
-                release: CStr::from_ptr(uts.release.as_ptr()).to_string_lossy().into_owned(),
-                version: CStr::from_ptr(uts.version.as_ptr()).to_string_lossy().into_owned(),
-                hostname: CStr::from_ptr(uts.nodename.as_ptr()).to_string_lossy().into_owned(),
-                arch,
-            })
+        Ok(Platform {
+            system: cstr(uts.sysname.as_ptr()).into_owned(),
+            release: cstr(uts.release.as_ptr()).into_owned(),
+            version: cstr(uts.version.as_ptr()).into_owned(),
+            hostname: cstr(uts.nodename.as_ptr()).into_owned(),
+            arch,
+        })
 
-        }
-    })
+    }
 }

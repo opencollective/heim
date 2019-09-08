@@ -26,7 +26,7 @@ impl FromStr for Memory {
         for line in meminfo.lines() {
             // If line does not starts with "Me", "Ac" or other options at all,
             // we do not need that key at all
-            if line.len() < 2 {
+            if line.len() <= 2 {
                 continue
             }
             match &line.as_bytes()[..2] {
@@ -88,6 +88,13 @@ mod tests {
     fn test_fuzzing_data_1() {
         let input = "\x0a";
 
-        assert!(Memory::from_str(input).is_ok());
+        let _ = Memory::from_str(input);
+    }
+
+    #[test]
+    fn test_fuzzing_data_2() {
+        let input = "\x0a\x0aShmem:0\x0aShmem:111111111111111112\x0aSmhem:0\x0aShmem:1\x0aShmem:2\x0aS\x0aSem";
+
+       let _ = Memory::from_str(input);
     }
 }

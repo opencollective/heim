@@ -136,3 +136,17 @@ pub async fn swap() -> Result<Swap> {
 
     Swap::parse_str(&meminfo_contents, vmstat)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::VmStat;
+
+    #[test]
+    fn test_fuzzing_data_1() {
+        let input = "in \x0a \x0a\x0apswpin 5\x0apswppin00\x0apswpin 555555555555555550\x0a";
+
+        let _ = VmStat::from_str(input);
+    }
+}

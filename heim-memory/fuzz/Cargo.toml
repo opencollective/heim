@@ -8,6 +8,9 @@ edition = "2018"
 [package.metadata]
 cargo-fuzz = true
 
+[dependencies.lazy_static]
+version = "1.4.0"
+
 [dependencies.heim-memory]
 path = ".."
 features = ["_internal"]
@@ -26,3 +29,7 @@ path = "fuzz_targets/linux_meminfo.rs"
 [[bin]]
 name = "linux_vmstat"
 path = "fuzz_targets/linux_vmstat.rs"
+
+[[bin]]
+name = "linux_swap"
+path = "fuzz_targets/linux_swap.rs"

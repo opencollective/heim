@@ -141,12 +141,28 @@ pub async fn swap() -> Result<Swap> {
 mod tests {
     use std::str::FromStr;
 
-    use super::VmStat;
+    use super::{Swap, VmStat};
 
     #[test]
+    // TODO: It should not panic, but commented out for a while
+    // https://github.com/iliekturtles/uom/issues/166
+    #[should_panic(expected = "attempt to multiply with overflow")]
     fn test_fuzzing_data_1() {
         let input = "in \x0a \x0a\x0apswpin 5\x0apswppin00\x0apswpin 555555555555555550\x0a";
 
         let _ = VmStat::from_str(input);
     }
+
+    #[test]
+    // TODO: It should not panic, but commented out for a while
+    // https://github.com/iliekturtles/uom/issues/166
+    #[should_panic(expected = "attempt to multiply with overflow")]
+    fn test_fuzzing_data_2() {
+        let vm_stat = VmStat::from_str(include_str!("../../../assets/proc_vmstat.txt")).unwrap();
+        let input = "SwapTotal:0222222222222222222";
+
+        let _ = Swap::parse_str(input, vm_stat);
+    }
+
+//
 }

@@ -36,9 +36,7 @@ version-sync = "0.8"
 
 [features]
 runtime-polyfill = ["heim-runtime/runtime-polyfill"]
-_internal = []
 
 [[bench]]
 name = "memory"
 harness = false
-required-features = ["_internal"]

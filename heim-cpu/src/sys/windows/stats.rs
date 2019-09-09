@@ -64,17 +64,13 @@ fn interrupts() -> Result<u64> {
     Ok(count.into())
 }
 
-pub fn stats() -> impl Future<Output = Result<CpuStats>> {
-    future::lazy(|_| {
-        let (ctx_switches, system_calls) = system_performance_info()?;
-        let dpc = dpc_count()?;
-        let interrupts = interrupts()?;
+pub async fn stats() -> Result<CpuStats> {
+    let (ctx_switches, system_calls) = system_performance_info()?;
 
-        Ok(CpuStats {
-            ctx_switches,
-            system_calls,
-            interrupts,
-            dpc_count: dpc,
-        })
+    Ok(CpuStats {
+        ctx_switches,
+        system_calls,
+        interrupts: interrupts()?,
+        dpc_count: dpc_count()?,
     })
 }

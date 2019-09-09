@@ -6,7 +6,7 @@ use winapi::um::{winbase, winnt, sysinfoapi};
 use heim_common::prelude::*;
 
 
-pub fn logical_count() -> impl Future<Output = Result<u64>> {
+pub async fn logical_count() -> Result<u64> {
     // Safety: seems to be a very straightforward function.
     // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getactiveprocessorcount
     let result = unsafe {
@@ -14,9 +14,9 @@ pub fn logical_count() -> impl Future<Output = Result<u64>> {
     };
 
     if result > 0 {
-        future::ok(u64::from(result))
+        Ok(u64::from(result))
     } else {
-        future::err(Error::last_os_error())
+        Err(Error::last_os_error())
     }
 }
 

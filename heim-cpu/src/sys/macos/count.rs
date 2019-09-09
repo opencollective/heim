@@ -4,7 +4,6 @@ use std::ffi::CStr;
 
 use heim_common::prelude::*;
 
-
 #[allow(trivial_casts)]
 fn sysctl(key: &[u8]) -> Result<u64> {
     let str = unsafe {
@@ -31,8 +30,8 @@ fn sysctl(key: &[u8]) -> Result<u64> {
 }
 
 
-pub fn logical_count() -> impl Future<Output = Result<u64>> {
-    future::ready(sysctl(b"hw.logicalcpu\0"))
+pub async fn logical_count() -> Result<u64> {
+    sysctl(b"hw.logicalcpu\0")
 }
 
 pub fn physical_count() -> impl Future<Output = Result<Option<u64>>> {

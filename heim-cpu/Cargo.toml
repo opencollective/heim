@@ -41,7 +41,13 @@ mach = "0.3.2"
 
 [dev-dependencies]
 futures-executor-preview = "0.3.0-alpha.18"
+criterion = "0.3.0"
 version-sync = "0.8"
 
 [features]
 runtime-polyfill = ["heim-runtime/runtime-polyfill"]
+
+
+[[bench]]
+name = "cpu"
+harness = false

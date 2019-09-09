@@ -31,9 +31,9 @@ impl fmt::Debug for CpuStats {
     }
 }
 
-/// Returns future which will resolve into [CpuStats].
+/// Returns [CpuStats].
 ///
 /// [CpuStats]: ./struct.CpuStats.html
-pub fn stats() -> impl Future<Output = Result<CpuStats>> {
-    sys::stats().map_ok(Into::into)
+pub async fn stats() -> Result<CpuStats> {
+    sys::stats().map_ok(Into::into).await
 }

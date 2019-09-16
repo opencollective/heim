@@ -54,7 +54,7 @@ jobs:
           component: clippy
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ steps.component.clippy.toolchain }}
+          toolchain: ${{ steps.clippy.outputs.toolchain }}
           override: true
       - uses: actions-rs/cargo@v1
         with:
@@ -68,7 +68,7 @@ jobs:
           component: rustfmt
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ steps.component.rustfmt.toolchain }}
+          toolchain: ${{ steps.rustfmt.outputs.toolchain }}
           override: true
       - uses: actions-rs/cargo@v1
         with:

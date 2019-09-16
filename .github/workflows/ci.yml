@@ -1,0 +1,76 @@
+on: [push, pull_request]
+
+name: Continuous integration
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+        toolchain:
+          - 1.36.0  # MSRV
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Install toolchain
+        uses: action-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+  lints:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Searching for clippy
+        id: clippy
+        uses: actions-rs/components-nightly@default-target-input
+        with:
+          component: clippy
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ steps.component.clippy.toolchain }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D warnings
+
+      - name: Searching for rustfmt
+        id: rustfmt
+        uses: actions-rs/components-nightly@default-target-input
+        with:
+          component: rustfmt
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ steps.component.rustfmt.toolchain }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check

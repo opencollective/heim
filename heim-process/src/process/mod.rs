@@ -140,10 +140,12 @@ impl Process {
         self.cpu_time().and_then(|time| {
             heim_cpu::logical_count()
                 .map_err(Into::into)
-                .map_ok(move |count| CpuUsage {
-                    cpu_count: count,
-                    cpu_time: time,
-                    at: Instant::now(),
+                .map_ok(move |count| {
+                    CpuUsage {
+                        cpu_count: count,
+                        cpu_time: time,
+                        at: Instant::now(),
+                    }
                 })
         })
     }

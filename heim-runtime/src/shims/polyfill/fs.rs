@@ -71,10 +71,12 @@ where
     read_lines(path)
         .into_stream()
         .into_future()
-        .map(|(try_line, _)| match try_line {
-            Some(Ok(line)) => Ok(line),
-            Some(Err(e)) => Err(e),
-            None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+        .map(|(try_line, _)| {
+            match try_line {
+                Some(Ok(line)) => Ok(line),
+                Some(Err(e)) => Err(e),
+                None => Err(io::Error::from(io::ErrorKind::InvalidData)),
+            }
         })
 }
 

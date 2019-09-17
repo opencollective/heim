@@ -1,11 +1,11 @@
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
-use std::ffi::{OsString, OsStr};
 
 use heim_common::prelude::*;
 
-use crate::FileSystem;
-use crate::os::windows::{Flags, DriveType};
 use super::bindings;
+use crate::os::windows::{DriveType, Flags};
+use crate::FileSystem;
 
 #[derive(Debug)]
 pub struct Partition {
@@ -58,25 +58,24 @@ pub fn partitions() -> impl Stream<Item = Result<Partition>> {
                     drive_type,
                     flags,
                 }))
-            },
+            }
             Ok(None) => future::ok(None),
-            Err(e) => future::err(e)
+            Err(e) => future::err(e),
         }
     })
     .try_filter_map(future::ok)
 }
 
 pub fn partitions_physical() -> impl Stream<Item = Result<Partition>> {
-    partitions()
-        .try_filter(|drive| {
-            let result = match drive.drive_type {
-                Some(DriveType::NoRootDir) => false,
-                Some(DriveType::Remote) => false,
-                Some(DriveType::RamDisk) => false,
-                None => false,
-                _ => true,
-            };
+    partitions().try_filter(|drive| {
+        let result = match drive.drive_type {
+            Some(DriveType::NoRootDir) => false,
+            Some(DriveType::Remote) => false,
+            Some(DriveType::RamDisk) => false,
+            None => false,
+            _ => true,
+        };
 
-            future::ready(result)
-        })
+        future::ready(result)
+    })
 }

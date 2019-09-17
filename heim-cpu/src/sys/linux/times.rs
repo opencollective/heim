@@ -1,8 +1,8 @@
 use std::str::{self, FromStr};
 
 use heim_common::prelude::*;
-use heim_common::units::{Time, time};
 use heim_common::sys::unix::CLOCK_TICKS;
+use heim_common::units::{time, Time};
 use heim_runtime::fs;
 
 #[derive(Debug, Default, heim_derive::Getter)]
@@ -59,10 +59,12 @@ pub fn time() -> impl Future<Output = Result<CpuTime>> {
         .into_stream()
         .take(1)
         .into_future()
-        .then(|res| match res {
-            (Some(Ok(time)), _) => future::ok(time),
-            (Some(Err(e)), _) => future::err(e),
-            (None, _) => future::err(Error::missing_entity("cumulative time line")),
+        .then(|res| {
+            match res {
+                (Some(Ok(time)), _) => future::ok(time),
+                (Some(Err(e)), _) => future::err(e),
+                (None, _) => future::err(Error::missing_entity("cumulative time line")),
+            }
         })
 }
 

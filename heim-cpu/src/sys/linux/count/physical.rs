@@ -55,8 +55,7 @@ struct Collector {
 }
 
 fn parse_line(line: &str) -> Result<u64> {
-    line
-        .split(':')
+    line.split(':')
         .nth(2)
         .map(|value| value.trim())
         .ok_or_else(|| Error::incompatible("Unsupported format for /proc/cpuinfo"))
@@ -70,32 +69,36 @@ fn cpu_info() -> impl Future<Output = Result<Option<u64>>> {
         .map_err(Error::from)
         .try_fold(acc, |mut acc, line| {
             let result = match &line {
-                l if l.starts_with("physical id") => match parse_line(l.as_str()) {
-                    Ok(physical_id) if acc.physical_id.is_none() => {
-                        acc.physical_id = Some(physical_id);
+                l if l.starts_with("physical id") => {
+                    match parse_line(l.as_str()) {
+                        Ok(physical_id) if acc.physical_id.is_none() => {
+                            acc.physical_id = Some(physical_id);
 
-                        Ok(acc)
+                            Ok(acc)
+                        }
+                        Ok(..) => {
+                            panic!("Missed the core id value in the /proc/cpuinfo!");
+                        }
+                        Err(e) => Err(e),
                     }
-                    Ok(..) => {
-                        panic!("Missed the core id value in the /proc/cpuinfo!");
-                    }
-                    Err(e) => Err(e),
-                },
-                l if l.starts_with("core id") => match parse_line(l.as_str()) {
-                    Ok(core_id) if acc.physical_id.is_some() => {
-                        let physical_id = acc
-                            .physical_id
-                            .take()
-                            .expect("Will not happen, match guard covers that");
-                        let _ = acc.group.insert((physical_id, core_id));
+                }
+                l if l.starts_with("core id") => {
+                    match parse_line(l.as_str()) {
+                        Ok(core_id) if acc.physical_id.is_some() => {
+                            let physical_id = acc
+                                .physical_id
+                                .take()
+                                .expect("Will not happen, match guard covers that");
+                            let _ = acc.group.insert((physical_id, core_id));
 
-                        Ok(acc)
+                            Ok(acc)
+                        }
+                        Ok(..) => {
+                            panic!("Missed the physical id value in the /proc/cpuinfo!");
+                        }
+                        Err(e) => Err(e),
                     }
-                    Ok(..) => {
-                        panic!("Missed the physical id value in the /proc/cpuinfo!");
-                    }
-                    Err(e) => Err(e),
-                },
+                }
                 _ => Ok(acc),
             };
 

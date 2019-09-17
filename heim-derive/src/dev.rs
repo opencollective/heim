@@ -72,9 +72,11 @@ pub fn os_ext_for(attr: TokenStream, item: TokenStream) -> TokenStream {
     let methods = trait_def
         .items
         .iter()
-        .filter_map(|item| match item {
-            syn::TraitItem::Method(method) => Some(method),
-            _ => None,
+        .filter_map(|item| {
+            match item {
+                syn::TraitItem::Method(method) => Some(method),
+                _ => None,
+            }
         })
         .map(|source| {
             let sig = &source.sig;
@@ -87,9 +89,11 @@ pub fn os_ext_for(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .sig
                 .inputs
                 .iter()
-                .filter_map(|input| match input {
-                    syn::FnArg::Receiver(..) => None,
-                    syn::FnArg::Typed(pat_type) => Some(pat_type.pat.to_token_stream()),
+                .filter_map(|input| {
+                    match input {
+                        syn::FnArg::Receiver(..) => None,
+                        syn::FnArg::Typed(pat_type) => Some(pat_type.pat.to_token_stream()),
+                    }
                 })
                 .collect::<Vec<_>>();
             quote::quote_spanned! {source.span()=>

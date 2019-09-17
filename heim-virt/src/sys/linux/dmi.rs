@@ -1,19 +1,24 @@
-use heim_common::prelude::{future, stream, Future, FutureExt, TryFutureExt, StreamExt, TryStreamExt};
+use heim_common::prelude::{
+    future, stream, Future, FutureExt, StreamExt, TryFutureExt, TryStreamExt,
+};
 use heim_runtime::fs;
 
 use crate::Virtualization;
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "arm", target_arch = "aarch64"))]
+#[cfg(any(
+    target_arch = "x86",
+    target_arch = "x86_64",
+    target_arch = "arm",
+    target_arch = "aarch64"
+))]
 pub fn detect_vm_dmi() -> impl Future<Output = Result<Virtualization, ()>> {
     stream::iter(&[
-        "/sys/class/dmi/id/product_name", /* Test this before sys_vendor to detect KVM over QEMU */
+        "/sys/class/dmi/id/product_name", // Test this before sys_vendor to detect KVM over QEMU
         "/sys/class/dmi/id/sys_vendor",
         "/sys/class/dmi/id/board_vendor",
         "/sys/class/dmi/id/bios_vendor",
     ])
-    .then(|path| {
-        fs::read_first_line(path).into_future()
-    })
+    .then(|path| fs::read_first_line(path).into_future())
     .map_err(|_| ())
     .try_filter_map(|line| {
         match () {
@@ -26,7 +31,7 @@ pub fn detect_vm_dmi() -> impl Future<Output = Result<Virtualization, ()>> {
             _ if line.starts_with("Bochs") => future::ok(Some(Virtualization::Bochs)),
             _ if line.starts_with("Parallels") => future::ok(Some(Virtualization::Parallels)),
             _ if line.starts_with("BHYVE") => future::ok(Some(Virtualization::Bhyve)),
-            _ => future::ok(None)
+            _ => future::ok(None),
         }
     })
     .into_future()
@@ -38,7 +43,12 @@ pub fn detect_vm_dmi() -> impl Future<Output = Result<Virtualization, ()>> {
     })
 }
 
-#[cfg(not(any(target_arch = "x86", target_arch = "x86_64", target_arch = "arm", target_arch = "aarch64")))]
+#[cfg(not(any(
+    target_arch = "x86",
+    target_arch = "x86_64",
+    target_arch = "arm",
+    target_arch = "aarch64"
+)))]
 pub fn detect_vm_dmi() -> impl Future<Output = Result<Virtualization, ()>> {
     future::err(())
 }

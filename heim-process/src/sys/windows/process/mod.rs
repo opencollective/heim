@@ -1,21 +1,21 @@
-use std::io;
 use std::cmp;
-use std::hash;
-use std::path::PathBuf;
 use std::ffi::OsString;
+use std::hash;
+use std::io;
 use std::os::windows::ffi::OsStringExt;
+use std::path::PathBuf;
 
 use heim_common::prelude::*;
 use heim_common::units::Time;
 use winapi::um::processthreadsapi;
 
-use super::{pids, pid_exists, bindings};
-use crate::{Pid, ProcessError, ProcessResult, Status};
+use super::{bindings, pid_exists, pids};
 use crate::sys::common::UniqueId;
+use crate::{Pid, ProcessError, ProcessResult, Status};
 
 mod command;
-mod create_time;
 mod cpu_times;
+mod create_time;
 mod memory;
 mod suspend;
 
@@ -55,7 +55,7 @@ impl Process {
             match pid {
                 0 => Ok("System Idle Process".to_string()),
                 4 => Ok("System".to_string()),
-                _ => Err(())
+                _ => Err(()),
             }
         })
         .or_else(move |_| {
@@ -70,12 +70,12 @@ impl Process {
                         Ok(path) => {
                             match path.file_name() {
                                 None => future::err(()),
-                                Some(name) => future::ok(name.to_string_lossy().into_owned())
+                                Some(name) => future::ok(name.to_string_lossy().into_owned()),
                             }
                         }
                         Err(..) => future::err(()),
                     }
-                },
+                }
                 Err(..) => future::err(()),
             }
         })
@@ -89,7 +89,9 @@ impl Process {
                 .flatten()
                 .find(|entry| entry.th32ProcessID == pid)
                 .map(|entry| {
-                    let first_null = entry.szExeFile.iter()
+                    let first_null = entry
+                        .szExeFile
+                        .iter()
                         .position(|byte| *byte == 0x00)
                         .unwrap_or(0);
                     let os_str = OsString::from_wide(&entry.szExeFile[..first_null]);
@@ -109,13 +111,12 @@ impl Process {
             if pid == 0 || pid == 4 {
                 Err(ProcessError::AccessDenied(pid))
             } else {
-                let handle = bindings::ProcessHandle::query_limited_info(pid)
-                    .map_err(|e| {
-                        match e.kind() {
-                            io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
-                            _ => e.into(),
-                        }
-                    })?;
+                let handle = bindings::ProcessHandle::query_limited_info(pid).map_err(|e| {
+                    match e.kind() {
+                        io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
+                        _ => e.into(),
+                    }
+                })?;
 
                 handle.exe().map_err(|e| {
                     match e.kind() {
@@ -164,8 +165,7 @@ impl Process {
                         }
                     })?;
 
-                handle.cpu_time()
-                    .map_err(ProcessError::from)
+                handle.cpu_time().map_err(ProcessError::from)
             });
 
             future::Either::Right(f)
@@ -189,7 +189,8 @@ impl Process {
                         }
                     })?;
 
-                handle.memory()
+                handle
+                    .memory()
                     .map(Memory::from)
                     .map_err(ProcessError::from)
             });
@@ -200,9 +201,7 @@ impl Process {
 
     pub fn is_running(&self) -> impl Future<Output = ProcessResult<bool>> {
         let unique_id = self.unique_id.clone();
-        get(self.pid).map_ok(move |other| {
-            other.unique_id == unique_id
-        })
+        get(self.pid).map_ok(move |other| other.unique_id == unique_id)
     }
 
     pub fn suspend(&self) -> impl Future<Output = ProcessResult<()>> {
@@ -213,16 +212,14 @@ impl Process {
             let pid = self.pid;
 
             let f = future::lazy(move |_| {
-                let handle = bindings::ProcessHandle::for_suspend_resume(pid)
-                    .map_err(|e| {
-                        match e.kind() {
-                            io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
-                            _ => e.into(),
-                        }
-                    })?;
+                let handle = bindings::ProcessHandle::for_suspend_resume(pid).map_err(|e| {
+                    match e.kind() {
+                        io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
+                        _ => e.into(),
+                    }
+                })?;
 
-                handle.suspend()
-                    .map_err(ProcessError::from)
+                handle.suspend().map_err(ProcessError::from)
             });
 
             future::Either::Right(f)
@@ -237,16 +234,14 @@ impl Process {
             let pid = self.pid;
 
             let f = future::lazy(move |_| {
-                let handle = bindings::ProcessHandle::for_suspend_resume(pid)
-                    .map_err(|e| {
-                        match e.kind() {
-                            io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
-                            _ => e.into(),
-                        }
-                    })?;
+                let handle = bindings::ProcessHandle::for_suspend_resume(pid).map_err(|e| {
+                    match e.kind() {
+                        io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
+                        _ => e.into(),
+                    }
+                })?;
 
-                handle.resume()
-                    .map_err(ProcessError::from)
+                handle.resume().map_err(ProcessError::from)
             });
 
             future::Either::Right(f)
@@ -265,16 +260,14 @@ impl Process {
             let pid = self.pid;
 
             let f = future::lazy(move |_| {
-                let handle = bindings::ProcessHandle::for_termination(pid)
-                    .map_err(|e| {
-                        match e.kind() {
-                            io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
-                            _ => e.into(),
-                        }
-                    })?;
+                let handle = bindings::ProcessHandle::for_termination(pid).map_err(|e| {
+                    match e.kind() {
+                        io::ErrorKind::PermissionDenied => ProcessError::AccessDenied(pid),
+                        _ => e.into(),
+                    }
+                })?;
 
-                handle.terminate()
-                    .map_err(ProcessError::from)
+                handle.terminate().map_err(ProcessError::from)
             });
 
             future::Either::Right(f)
@@ -298,38 +291,32 @@ impl cmp::Eq for Process {}
 
 /// Create the `Process` from `pid` without checking first if pid is alive.
 fn get_unchecked(pid: Pid) -> impl Future<Output = ProcessResult<Process>> {
-    self::create_time::get(pid)
-        .map_ok(move |create_time| {
-            Process {
-                pid,
-                unique_id: UniqueId::new(pid, create_time),
-            }
-        })
+    self::create_time::get(pid).map_ok(move |create_time| {
+        Process {
+            pid,
+            unique_id: UniqueId::new(pid, create_time),
+        }
+    })
 }
 
 pub fn processes() -> impl Stream<Item = ProcessResult<Process>> {
-    pids()
-        .and_then(get_unchecked)
+    pids().and_then(get_unchecked)
 }
 
 pub fn get(pid: Pid) -> impl Future<Output = ProcessResult<Process>> {
-    pid_exists(pid)
-        .and_then(move |is_exists| {
-            if is_exists {
-                future::Either::Left(get_unchecked(pid))
-            } else {
-                let f = future::err(ProcessError::NoSuchProcess(pid));
+    pid_exists(pid).and_then(move |is_exists| {
+        if is_exists {
+            future::Either::Left(get_unchecked(pid))
+        } else {
+            let f = future::err(ProcessError::NoSuchProcess(pid));
 
-                future::Either::Right(f)
-            }
-        })
+            future::Either::Right(f)
+        }
+    })
 }
 
 pub fn current() -> impl Future<Output = ProcessResult<Process>> {
-    let pid = unsafe {
-        processthreadsapi::GetCurrentProcessId()
-    };
+    let pid = unsafe { processthreadsapi::GetCurrentProcessId() };
 
     get_unchecked(pid)
 }
-

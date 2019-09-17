@@ -2,14 +2,14 @@
 
 #![allow(non_camel_case_types, non_upper_case_globals, non_snake_case)]
 
-use std::mem;
-use std::iter;
-use std::ffi::OsStr;
 use std::ffi::CStr;
+use std::ffi::OsStr;
+use std::iter;
+use std::mem;
 use std::os::windows::ffi::OsStrExt;
 
-use winapi::um::{winnt, libloaderapi};
-use winapi::shared::{ntdef, minwindef};
+use winapi::shared::{minwindef, ntdef};
+use winapi::um::{libloaderapi, winnt};
 
 use crate::prelude::*;
 
@@ -27,7 +27,7 @@ pub const SystemProcessorPerformanceInformation: SYSTEM_INFORMATION_CLASS = 8;
 #[allow(missing_docs)]
 pub const SystemInterruptInformation: SYSTEM_INFORMATION_CLASS = 23;
 
-//typedef enum _SYSTEM_INFORMATION_CLASS {
+// typedef enum _SYSTEM_INFORMATION_CLASS {
 //    SystemBasicInformation = 0,
 //    SystemPerformanceInformation = 2,
 //    SystemTimeOfDayInformation = 3,

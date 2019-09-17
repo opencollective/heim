@@ -21,6 +21,7 @@ pub fn skip_ci(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .any(|(key, _)| {
                     match key.as_str() {
                         "TF_BUILD" => true,
+                        "GITHUB_ACTOR" => true,
                         _ => false
                     }
                 });

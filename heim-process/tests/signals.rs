@@ -5,8 +5,6 @@ use heim_process as process;
 #[cfg(unix)]
 #[heim_derive::test]
 async fn test_kill() {
-    use heim_process::os::unix::{ProcessExt, Signal};
-
     let yes_path = match which::which("yes") {
         Ok(path) => path,
         Err(e) => {

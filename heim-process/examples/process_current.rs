@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 use heim_common::prelude::StreamExt;
 use heim_common::units::ratio;
 use heim_process as process;

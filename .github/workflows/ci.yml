@@ -38,7 +38,7 @@ jobs:
           command: test
           args: --all-features
 
-  lints:
+  clippy:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -63,6 +63,10 @@ jobs:
           command: clippy
           args: --all-targets --all-features -- -D warnings
 
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
       - name: Searching for rustfmt
         id: rustfmt
         uses: actions-rs/components-nightly@default-target-input

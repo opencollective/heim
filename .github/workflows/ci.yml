@@ -129,8 +129,6 @@ jobs:
         with:
           coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
 
-      - run: cat ${{ steps.coverage.outputs.report }}
-
       - name: Coveralls upload
         uses: coverallsapp/github-action@master
         with:

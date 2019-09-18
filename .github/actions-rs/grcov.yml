@@ -1,2 +1,8 @@
 branch: true
+ignore-not-existing: true
+llvm: true
 output-type: coveralls+
+ignore-dir:
+  - "/*"
+  - "C:/*"
+  - "../*"

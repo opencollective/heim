@@ -126,6 +126,8 @@ jobs:
       - name: Gather coverage data
         id: coverage
         uses: actions-rs/grcov@dev
+        with:
+          coveralls-token: ${{ secrets.COVERALLS_TOKEN }}
 
       - name: Coveralls upload
         uses: coverallsapp/github-action@master

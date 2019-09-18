@@ -104,7 +104,7 @@ jobs:
           override: true
 
       - name: Execute tests (not macOS)
-        if: startsWith(${{ matrix.os }}, 'macOS') == false
+        if: startsWith(matrix.os, 'macOS') == false
         uses: actions-rs/cargo@v1
         with:
           command: test
@@ -114,7 +114,7 @@ jobs:
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
 
       - name: Execute tests (macOS)
-        if: startsWith(${{ matrix.os }}, 'macOS') == true
+        if: startsWith(matrix.os, 'macOS') == true
         uses: actions-rs/cargo@v1
         with:
           command: test
